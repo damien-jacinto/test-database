@@ -36,8 +36,7 @@ func main() {
     authenticationToken, err := auth.BuildAuthToken(
         context.TODO(), dbEndpoint, region, dbUser, cfg.Credentials)
     if err != nil {
-        //panic("failed to create authentication token: " + err.Error())
-        authenticationToken = ""
+        panic("failed to create authentication token: " + err.Error())
     }
 
     dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
