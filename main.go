@@ -1,13 +1,13 @@
 package main
 
 import (
-    "context"
     "database/sql"
     "fmt"
     "os"
     "strconv"
-    "github.com/aws/aws-sdk-go-v2/config"
-    "github.com/aws/aws-sdk-go-v2/feature/rds/auth"
+    "github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/rds/rdsutils"
     _ "github.com/lib/pq"
 )
 
@@ -28,13 +28,14 @@ func main() {
     var region string = getenv("REGION", "eu-central-1")
     var dbEndpoint string = fmt.Sprintf("%s:%d", dbHost, dbPort)
 
-    cfg, err := config.LoadDefaultConfig(context.TODO())
-    if err != nil {
-        panic("configuration error: " + err.Error())
-    }
+    opts := session.Options{Config: aws.Config{
+            CredentialsChainVerboseErrors: aws.Bool(true),
+            Region:                        aws.String(region),
+            MaxRetries:                    aws.Int(3),
+        }}
+    sess := session.Must(session.NewSessionWithOptions(opts))
 
-    authenticationToken, err := auth.BuildAuthToken(
-        context.TODO(), dbEndpoint, region, dbUser, cfg.Credentials)
+    authenticationToken, err := rdsutils.BuildAuthToken(dbEndpoint, region, dbUser, sess.Config.Credentials)
     if err != nil {
         panic("failed to create authentication token: " + err.Error())
     }
